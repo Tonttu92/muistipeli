@@ -1,66 +1,121 @@
-import { createCardElement, flipCard } from './card.js';
+import { createCardElement } from './card.js';
 
-const allCards = [
-    '🍎', '🍐', '🍒', '🍉', '🍇', '🍓', '🍌', '🍍', '🥝', '🥥', '🍑', '🍈', '🍋', '🍊', '🍏', '🍅'
-];
 const gameBoard = document.getElementById('game-board');
+
 let firstCard = null;
 let secondCard = null;
 let lockBoard = false;
+let matchesFound = 0;
+let totalPairs = 0;
+let attempts = 0;
+
+let flipCallback = null;
+let moveCallback = null;
+let matchCallback = null;
+let completeCallback = null;
 
 function shuffle(array) {
-    array.sort(() => Math.random() - 0.5);
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
 }
 
-export function createBoard(cardCount) {
-    const selectedCards = allCards.slice(0, cardCount / 2);
-    const cards = [...selectedCards, ...selectedCards];
+export function setupBoard({
+    cardCount,
+    emojis,
+    onFlip,
+    onMove,
+    onMatch,
+    onComplete
+}) {
+    gameBoard.innerHTML = "";
+
+    firstCard = null;
+    secondCard = null;
+    lockBoard = false;
+    matchesFound = 0;
+    attempts = 0;
+    totalPairs = cardCount / 2;
+
+    flipCallback = onFlip || null;
+    moveCallback = onMove || null;
+    matchCallback = onMatch || null;
+    completeCallback = onComplete || null;
+
+    const selected = emojis.slice(0, totalPairs);
+    const cards = [...selected, ...selected];
+
     shuffle(cards);
-    cards.forEach(card => {
-        const cardElement = createCardElement(card);
-        cardElement.addEventListener('click', () => flipCard(cardElement, handleCardFlip));
-        gameBoard.appendChild(cardElement);
+
+    cards.forEach(emoji => {
+        const card = createCardElement(emoji);
+        card.addEventListener("click", () => onCardClick(card));
+        gameBoard.appendChild(card);
     });
 }
 
-function handleCardFlip(cardElement) {
+function onCardClick(card) {
     if (lockBoard) return;
-    if (cardElement === firstCard) return;
+    if (card === firstCard) return;
+    if (card.classList.contains("flipped") || card.classList.contains("matched")) return;
 
-    cardElement.classList.add('flipped');
-    cardElement.textContent = cardElement.dataset.card;
+    flip(card);
 
     if (!firstCard) {
-        firstCard = cardElement;
+        firstCard = card;
         return;
     }
 
-    secondCard = cardElement;
-    checkForMatch();
+    secondCard = card;
+    attempts++;
+
+    if (moveCallback) moveCallback(attempts);
+
+    checkMatch();
 }
 
-function checkForMatch() {
-    let isMatch = firstCard.dataset.card === secondCard.dataset.card;
-    isMatch ? disableCards() : unflipCards();
+function flip(card) {
+    card.classList.add("flipped");
+    card.textContent = card.dataset.emoji;
+
+    if (flipCallback) flipCallback();
 }
 
-function disableCards() {
-    firstCard.removeEventListener('click', flipCard);
-    secondCard.removeEventListener('click', flipCard);
-    resetBoard();
+function unflip(card) {
+    card.classList.remove("flipped");
+    card.textContent = "";
 }
 
-function unflipCards() {
+function checkMatch() {
+    const isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
+    isMatch ? handleMatch() : handleNoMatch();
+}
+
+function handleMatch() {
+    firstCard.classList.add("matched");
+    secondCard.classList.add("matched");
+
+    matchesFound++;
+    if (matchCallback) matchCallback(matchesFound, totalPairs);
+
+    resetPick();
+
+    if (matchesFound === totalPairs && completeCallback) {
+        completeCallback({ attempts, pairs: totalPairs });
+    }
+}
+
+function handleNoMatch() {
     lockBoard = true;
+
     setTimeout(() => {
-        firstCard.classList.remove('flipped');
-        secondCard.classList.remove('flipped');
-        firstCard.textContent = '';
-        secondCard.textContent = '';
-        resetBoard();
-    }, 1500);
+        unflip(firstCard);
+        unflip(secondCard);
+        resetPick();
+    }, 1000);
 }
 
-function resetBoard() {
+function resetPick() {
     [firstCard, secondCard, lockBoard] = [null, null, false];
 }
