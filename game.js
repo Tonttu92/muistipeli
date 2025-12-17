@@ -110,12 +110,11 @@ function startGame() {
             play(matchSound);
         },
         onComplete: ({ attempts, pairs }) => {
+            play(winSound);
             stopTimer();
             const sec = Math.floor((Date.now() - startTime) / 1000);
             const score = calcScore(attempts, sec, pairs);
             scoreEl.textContent = score;
-
-            play(winSound);
 
             msgEl.textContent =
                 `Hienoa! Löysit kaikki ${pairs} paria ` +
