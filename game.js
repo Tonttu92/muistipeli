@@ -17,7 +17,6 @@ const winSound = document.getElementById('win-sound');
 let timer = null;
 let startTime = null;
 
-// nämä eri teemat ja niille jotkut emojit (ihan hienot)
 const THEMES = {
     fruits: {
         bodyClass: 'theme-fruits',
@@ -39,7 +38,7 @@ function applyTheme(themeKey) {
     const theme = THEMES[themeKey];
     if (!theme) return;
 
-    document.body.classList.remove('theme-fruits', 'theme-street');
+    document.body.classList.remove('theme-fruits', 'theme-cars');
     document.body.classList.add(theme.bodyClass);
 }
 
@@ -119,7 +118,7 @@ function startGame() {
             play(winSound);
 
             msgEl.textContent =
-                `jippikai jee löysit kai kaikki ${pairs} paria ` +
+                `Hienoa! Löysit kaikki ${pairs} paria ` +
                 `${attempts} yrityksellä ajassa ${timeEl.textContent}. ` +
                 `Pisteet: ${score}.`;
         }
