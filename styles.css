@@ -12,7 +12,7 @@ body {
 }
 
 body.theme-fruits {
-    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    background: linear-gradient(135deg, #92d6db 0%, #a4e2eb 100%);
 }
 
 body.theme-animals {
@@ -121,7 +121,7 @@ button:hover:not(:disabled) {
 }
 
 .card.matched {
-    background: #c8ffc8;
+    background: #d73eb9;
 }
 
 .message {
